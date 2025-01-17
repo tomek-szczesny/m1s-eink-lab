@@ -1,0 +1,55 @@
+digraph {
+//	newrank=true;
+
+	{rank="source";	<5V DC in>; <FIFO\ndata_in>}
+	//{rank="same"; <seq>}
+	{rank="sink"; <ED060FC1>; <ES108FC2>; <VGA>}
+
+	subgraph cluster_m1s {
+	label="Odroid M1S";
+		graph[style=dotted];
+		<SPI0>
+		<GPIO>
+		<ADCs>
+		<USB>
+		<DSI Port>
+	}
+	<SPI0> -> <Bitstream\nFlash> -> <FPGA> [label="SPI"]
+	<GPIO> -> <FPGA> [label="JTAG"]
+	<GPIO> -> <FPGA> [label="RESET"]
+	<GPIO> -> <FPGA> [label="GPIO"]
+	<USB> -> <FPGA>
+	<DSI Port> -> <FPGA>
+	
+	subgraph cluster_einklab {
+	label="M1S-eink-lab";
+		graph[style=dotted];
+		<Current Sense 1> -> <e-ink PMIC> [color="red"]
+		<Current Sense 2> -> <FPGA PMIC> -> <FPGA> [color="red"]
+		<Bitstream\nFlash>
+	}
+
+	<5V DC in> -> <Current Sense 1> -> <ADCs>
+	<5V DC in> -> <Current Sense 2> -> <ADCs>
+	<e-ink PMIC> -> <ED060FC1>
+	<e-ink PMIC> -> <ES108FC2>
+	<FPGA> -> <VGA>
+	<FPGA> -> <ED060FC1>
+	<FPGA> -> <ES108FC2>
+	<FPGA> -> <e-ink PMIC>
+
+
+	<FIFO\ndata in/out><Round-Robin\nPort Selector>
+
+	<FIFO\ncmd> -> <seq> [label="cmd,\nstatus[0]"]
+	<seq> -> <FIFO\ncmd> [label="~stop"]
+
+	<seq> -> <addr/cfg\nmux> [label="cfg"]
+	<addr/cfg\nmux> -> <Pins\naddr> [label="addr_cfg"; style="bold"]
+	<FIFO\ncmd> -> <addr/cfg\nmux> [label="addr"; style="bold"]
+	
+
+	<IO logic> -> <Pins\ncmd>
+	<IO logic> -> <FIFO\ndata_out> -> <Pins\nD0-D7> -> <FIFO\ndata_in>
+	<IO logic> -> <FIFO\ndata_in>
+}
